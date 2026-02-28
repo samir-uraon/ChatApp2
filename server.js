@@ -13,7 +13,7 @@ app.prepare().then(() => {
 
   const io = new Server(httpServer, {
     cors: {
-      origin: process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:3000",
+      origin: process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000",
       credentials: true,
     },
   });
@@ -49,7 +49,7 @@ app.prepare().then(() => {
     });
   });
 
-  httpServer.listen(3000, () => {
-    console.log("Server running on http://localhost:3000");
+  httpServer.listen(5000, () => {
+    console.log("Server running on http://localhost:5000");
   });
 });

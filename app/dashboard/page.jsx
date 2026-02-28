@@ -99,7 +99,7 @@ useEffect(() => {
   useEffect(() => {
   if (!currentUser?._id) return;
 
-  socketRef.current = io(process.env.NEXT_PUBLIC_SOCKET_URL, {
+  socketRef.current = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000", {
     withCredentials: true,
   });
 
