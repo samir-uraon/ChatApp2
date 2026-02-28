@@ -13,7 +13,7 @@ app.prepare().then(() => {
 
   const io = new Server(httpServer, {
     cors: {
-      origin: "*",
+      origin: process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000",
     },
   });
 

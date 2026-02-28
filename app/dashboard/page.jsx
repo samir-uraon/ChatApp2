@@ -201,6 +201,9 @@ const sortedUsers = useMemo(() => {
   const logout = async () => {
     socketRef.current?.disconnect();
     await api.post("/api/auth/logout");
+    localStorage.removeItem("unreadCounts");
+    localStorage.removeItem("lastMessageMap");
+  
     router.push("/");
   };
 
