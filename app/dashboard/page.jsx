@@ -99,8 +99,8 @@ useEffect(() => {
   useEffect(() => {
   if (!currentUser?._id) return;
 
-  socketRef.current = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:3000", {
-    withCredentials: true,
+  socketRef.current = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000", {
+    //withCredentials: true,
   });
 
   socketRef.current.emit("register", currentUser._id);
