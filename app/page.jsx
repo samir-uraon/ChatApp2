@@ -63,9 +63,10 @@ export default function Home() {
  
       {bgLoaded && (
         <div
-          className={`relative transition-opacity duration-700 rounded-sm bg-white/10 border-white/30 shadow-xl p-6 backdrop-blur-xl w-70 ${
-            isLogin ? "h-75" : "h-85"
-          }`}
+          className={`relative transition-opacity duration-700 rounded-sm 
+          bg-white/10 border border-white/20 shadow-xl backdrop-blur-xl 
+          p-5 sm:p-6 md:p-8
+          w-50% max-w-xs sm:max-w-sm md:max-w-md`}
         >
           <div className="flex flex-col text-center justify-center items-center h-full w-full">
             <h1 className="text-2xl font-extrabold font-mono">{isLogin ? "Welcome Back" : "Welcome"}</h1>
@@ -107,12 +108,12 @@ export default function Home() {
               {isLogin && (
                 <p
                   onClick={() => router.push("/api/forgot-password")}
-                  className="absolute right-2 top-[55.4%] text-xs text-blue-700 cursor-pointer hover:underline hover:text-blue-900"
+                  className="absolute right-1 top-[52%] text-xs text-blue-700 cursor-pointer hover:underline hover:text-blue-900"
                 >
                   Forgot Password?
                 </p>
               )}
-              <Button type="submit" className={isLogin ? "relative top-[10%]" : "relative top-[8%]"}>
+              <Button type="submit" className="w-full mt-4">
                 {isLogin ? "Login" : "Sign Up"}
               </Button>
             </form>

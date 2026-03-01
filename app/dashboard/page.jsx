@@ -7,16 +7,16 @@ import { useRouter } from "next/navigation";
 
 export default function Dashboard() {
   const router = useRouter();
-
   const [currentUser, setCurrentUser] = useState(null);
   const [users, setUsers] = useState([]);
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isUsersLoading, setIsUsersLoading] = useState(true);
-
+  
   const [chat, setChat] = useState([]);
   const [message, setMessage] = useState("");
-  const [media, setMedia] = useState(null);
+  const isDisabled = message.trim() === "";
+ 
  
 const [isUserLoading, setIsUserLoading] = useState(true);
  
@@ -101,7 +101,11 @@ useEffect(() => {
 
   socketRef.current = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000", {
     withCredentials: true,
+<<<<<<< HEAD
   transports: ["websocket"], 
+=======
+    transports: ["websocket"],
+>>>>>>> 36bd5ac (	modified:   app/dashboard/page.jsx)
   });
 
   socketRef.current.emit("register", currentUser._id);
@@ -133,7 +137,7 @@ useEffect(() => {
   });
 
   return () => socketRef.current?.disconnect();
-}, [currentUser]);
+}, [currentUser, selectedUser]);
 
   /* ---------------- AUTO SCROLL ---------------- */
   useEffect(() => {
@@ -144,13 +148,13 @@ useEffect(() => {
 const sendMessage = async () => {
     if (!selectedUser || !message) return;
 
-    const payload = {
-      from: currentUser._id,
-      to: selectedUser._id,
-      message,
-      type: "text",
-      timestamp: new Date().toLocaleString(),
-    };
+  const payload = {
+  from: currentUser._id,
+  to: selectedUser._id,
+  message,
+  type: "text",
+  createdAt: new Date().toISOString(),
+};
 
     try {
       await api.post("/api/auth/messages", payload);
@@ -192,10 +196,9 @@ const sortedUsers = useMemo(() => {
     if (!aLast) return 1;
     if (!bLast) return -1;
 
-    return bLast - aLast; // numeric timestamp
+    return bLast - aLast;
   });
 }, [users, lastMessageMap, unreadCounts]);
-
 
 
   /* ---------------- LOGOUT ---------------- */
@@ -240,10 +243,14 @@ const updateLastMessage = (msg) => {
       ? msg.receiverId
       : msg.senderId;
 
+  const timestamp = msg.createdAt
+    ? new Date(msg.createdAt).getTime()
+    : Date.now();
+
   setLastMessageMap((prev) => {
     const updated = {
       ...prev,
-      [otherUserId]: msg.createdAt,
+      [otherUserId]: timestamp,
     };
 
     localStorage.setItem(
@@ -277,8 +284,11 @@ console.log(res.data);
 
 if (isUserLoading) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+  <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
       <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+      <p className="mt-4 text-sm text-gray-500">
+        Verifying secure session...
+      </p>
     </div>
   );
 }
@@ -287,29 +297,30 @@ if (isUserLoading) {
 
   return (
     <>
-      <div className="min-h-screen bg-gray-100 p-6 grid grid-cols-3 gap-6">
+      <div className="min-h-screen bg-gray-100 p-3 sm:p-4 md:p-6 
+                 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
 
         {/* LEFT PANEL */}
-        <div className="bg-white rounded-2xl shadow-lg p-5 flex flex-col h-[calc(100vh-48px)]">
+        <div className={`bg-white rounded-2xl shadow-lg p-4 md:p-5 flex flex-col 
+        h-[calc(100vh-24px)] md:h-[calc(100vh-48px)]
+        ${selectedUser ? "hidden md:flex" : "flex"}`}>
           <div className="flex justify-between items-center mb-6 shrink-0">
             
             <button
               onClick={() => setShowProfile(true)}
-              className="w-11 h-11 rounded-full bg-blue-600 text-white font-semibold flex items-center justify-center"
-            >
+className="w-10 h-10 md:w-11 md:h-11 hover:cursor-pointer rounded-full bg-blue-600 text-white font-semibold flex items-center justify-center"            >
               {currentUser.name.charAt(0).toUpperCase()}
             </button>
 
             <button
               onClick={() => router.push("/api/invite")}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm focus:cursor-pointer"
-            >
+className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cursor-pointer"            >
               Invite
             </button>
 
           </div>
 
-          <ul className="space-y-3 overflow-y-auto flex-1 min-h-0">
+          <ul className="space-y-3 overflow-y-auto flex-1 min-h-0 no-scrollbar">
             {isUsersLoading ? (
               <div className="text-center text-gray-400 mt-10">
                 Loading contacts...
@@ -334,10 +345,10 @@ if (isUserLoading) {
   }));
 }}
                   className={`p-3 border rounded-xl cursor-pointer ${
-                    selectedUser?._id === user._id
-                      ? "bg-blue-50 border-blue-400"
-                      : "hover:bg-gray-50"
-                  }`}
+                  selectedUser?._id === user._id
+                    ? "bg-blue-50 border-blue-400"
+                    : "hover:bg-gray-50"
+                }`}
                 >
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
@@ -373,7 +384,11 @@ if (isUserLoading) {
       </div>
 
         {/* RIGHT PANEL */}
-        <div className="col-span-2 bg-white rounded-2xl shadow-lg flex flex-col h-[calc(100vh-48px)] overflow-hidden">
+        <div className={`col-span-1 md:col-span-2 bg-white rounded-2xl shadow-lg 
+        flex flex-col h-[calc(100vh-24px)] md:h-[calc(100vh-48px)] 
+        overflow-hidden
+        ${!selectedUser ? "hidden md:flex" : "flex"}`}> 
+
           {!selectedUser ? (
             <div className="flex items-center justify-center flex-1 text-gray-400">
               Select a contact to start chatting
@@ -385,7 +400,7 @@ if (isUserLoading) {
                 <div className="flex items-center justify-center gap-3">
                     <button
               onClick={() => setShowProfile2(true)}
-              className="w-10 h-10 rounded-full bg-blue-600 text-white font-semibold flex items-center justify-center"
+              className="w-10 h-10 rounded-full bg-blue-600 text-white font-semibold flex items-center justify-center hover:cursor-pointer"
             >
               {selectedUser.name.charAt(0).toUpperCase()}
             </button>
@@ -404,34 +419,32 @@ if (isUserLoading) {
                 </div>
 
                 <button
-                  onClick={() => setSelectedUser(null)}
-                  className="text-gray-400 hover:text-gray-700 text-xl "
-                >
-                  ✕
-                </button>
-              </div>
+                onClick={() => setSelectedUser(null)}
+                className="text-gray-500 hover:text-gray-700 text-xl hover:cursor-pointer"
+              >
+                <span className="md:hidden text-2xl">←</span>
+                <span className="hidden md:inline">✕</span>
+              </button>
+            </div>
 
               {/* CHAT SCROLL AREA */}
-              <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3">
-                {chat.map((msg, i) => {
+<div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 space-y-3 no-scrollbar">                {chat.map((msg, i) => {
                   const isMe = msg.from === currentUser._id;
 
-                  return (
-                    <div key={i} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                      <div className={`max-w-xs p-3 rounded-xl ${
-                        isMe ? "bg-blue-500 text-white" : "bg-gray-200"
+                    return (
+                      <div key={i} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                      <div className={`max-w-[75%] sm:max-w-xs p-3 rounded-xl ${
+                        isMe
+                          ? "bg-blue-500 text-white"
+                          : "bg-gray-200"
                       }`}>
-                        {msg.type === "media" ? (
-                          <img src={msg.message} className="rounded max-w-xs" />
-                        ) : (
-                          msg.message
-                        )}
+                        {msg.message}
                         <div className="text-[10px] mt-1 text-right opacity-70">
-                          {msg.timestamp}
+                        {new Date(msg.createdAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: '2-digit' })} {new Date(msg.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
                         </div>
                       </div>
-                    </div>
-                  );
+                      </div>
+                    );
                 })}
                 <div ref={chatEndRef} />
               </div>
@@ -446,14 +459,19 @@ if (isUserLoading) {
                   onChange={(e) => setMessage(e.target.value)}
                   className="flex-1 border rounded-xl px-4 py-2"
                   placeholder="Type message..."
+                  required
                 />
               
-                <button
-                  onClick={sendMessage}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-xl"
-                >
-                  Send
-                </button>
+              <button onClick={sendMessage}
+  disabled={isDisabled}
+  className={`px-6 py-2 rounded-xl text-white transition 
+    ${isDisabled 
+      ? "bg-blue-600 opacity-50 cursor-not-allowed" 
+      : "bg-blue-600 hover:bg-blue-700 cursor-pointer"
+    }`}
+>
+  Send
+</button>
               </div>
             </>
           )}
@@ -476,7 +494,7 @@ if (isUserLoading) {
                 setShowProfile(false);
                 setIsEditing(false);
               }}
-              className="absolute top-3 right-6 text-gray-400 hover:text-gray-700"
+              className="absolute top-3 right-6 text-gray-400 hover:text-gray-700 hover:cursor-pointer"
             >
               ✕
             </button>
@@ -495,13 +513,13 @@ if (isUserLoading) {
                   <div className="flex gap-3 w-full">
                     <button
                       onClick={() => setIsEditing(true)}
-                      className="flex-1 bg-blue-600 text-white py-2 rounded-xl"
+                      className="flex-1 bg-blue-600 text-white py-2 rounded-xl hover:cursor-pointer"
                     >
                       Edit Profile
                     </button>
                     <button
                       onClick={logout}
-                      className="flex-1 bg-red-500 text-white py-2 rounded-xl"
+                      className="flex-1 bg-red-500 text-white py-2 rounded-xl hover:cursor-pointer"
                     >
                       Logout
                     </button>
@@ -526,13 +544,13 @@ if (isUserLoading) {
                   <div className="flex gap-3 w-full">
                     <button
                       onClick={saveProfile}
-                      className="flex-1 bg-green-600 text-white py-2 rounded-xl"
+                      className="flex-1 bg-green-600 text-white py-2 rounded-xl hover:cursor-pointer"
                     >
                       Save
                     </button>
                     <button
                       onClick={() => setIsEditing(false)}
-                      className="flex-1 bg-gray-400 text-white py-2 rounded-xl"
+                      className="flex-1 bg-gray-400 text-white py-2 rounded-xl hover:cursor-pointer"
                     >
                       Cancel
                     </button>
@@ -561,7 +579,7 @@ if (isUserLoading) {
                 setShowProfile2(false);
                  
               }}
-              className="absolute top-3 right-4 text-gray-400 hover:text-gray-700"
+              className="absolute top-3 right-4 text-gray-400 hover:text-gray-700 hover:cursor-pointer"
             >
               ✕
             </button>
