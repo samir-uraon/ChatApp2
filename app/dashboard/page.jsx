@@ -108,6 +108,7 @@ useEffect(() => {
 
   socketRef.current.on("online-users", setOnlineUsers);
 
+  
   socketRef.current.on("receive-message", (data) => {
 
      updateLastMessage({
