@@ -473,27 +473,39 @@ className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
              
 
               {/* INPUT */}
-              <div className="p-4 border-t flex gap-2 shrink-0">
-                <input
-                  type="text"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  className="flex-1 border rounded-xl px-4 py-2"
-                  placeholder="Type message..."
-                  required
-                />
-              
-              <button onClick={sendMessage}
-  disabled={isDisabled}
-  className={`px-6 py-2 rounded-xl text-white transition 
-    ${isDisabled 
-      ? "bg-blue-600 opacity-50 cursor-not-allowed" 
-      : "bg-blue-600 hover:bg-blue-700 cursor-pointer"
-    }`}
->
-  Send
-</button>
-              </div>
+          <div className="p-2 border-t bg-white">
+  <div className="flex items-center gap-2 w-full">
+
+    <input
+      type="text"
+      value={message}
+      onChange={(e) => setMessage(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" && !isDisabled) {
+          sendMessage();
+        }
+      }}
+      className="flex-1 min-w-0 border rounded-full 
+                 px-3 py-2 text-sm
+                 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      placeholder="Type message..."
+    />
+
+    <button
+      onClick={sendMessage}
+      disabled={isDisabled}
+      className={`shrink-0 px-5 py-2 text-sm rounded-full text-white transition
+        ${
+          isDisabled
+            ? "bg-blue-600 opacity-50 cursor-not-allowed"
+            : "bg-blue-600 active:scale-95"
+        }`}
+    >
+      Send
+    </button>
+
+  </div>
+</div>
             </>
           )}
         </div>
