@@ -104,7 +104,7 @@ export default function Home() {
                 required
                 placeholder="Password"
                 className="border-b-2 border-black focus:border-blue-500 outline-none px-1 py-0.2 w-55 text-md valid:border-blue-500"
-              />
+              /> 
               {isLogin && (
                 <p
                   onClick={() => router.push("/api/forgot-password")}
