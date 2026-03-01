@@ -105,7 +105,7 @@ useEffect(() => {
   transports: ["websocket"], 
 =======
     transports: ["websocket"],
->>>>>>> 36bd5ac (	modified:   app/dashboard/page.jsx)
+>>>>>>> 6bd5ac (	modified:   app/dashboard/page.jsx)
   });
 
   socketRef.current.emit("register", currentUser._id);
