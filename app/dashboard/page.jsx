@@ -101,11 +101,7 @@ useEffect(() => {
 
   socketRef.current = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000", {
     withCredentials: true,
-<<<<<<< HEAD
-  transports: ["websocket"], 
-=======
     transports: ["websocket"],
->>>>>>> 6bd5ac (	modified:   app/dashboard/page.jsx)
   });
 
   socketRef.current.emit("register", currentUser._id);
