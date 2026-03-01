@@ -43,7 +43,7 @@ export async function GET(req) {
 
 export async function POST(req) {
   try {
-    const { from, to, message, type, timestamp } = await req.json();
+    const { from, to, message, type} = await req.json();
 
     if (!from || !to || !message) {
       return NextResponse.json(
@@ -60,8 +60,8 @@ export async function POST(req) {
       to: new ObjectId(to),
       message: message,
       type: type || "text",
-      timestamp: timestamp || new Date().toLocaleString(),
-      createdAt: new Date(),
+    createdAt: new Date(),   // REQUIRED
+  updatedAt: new Date(),
     });
 
     const newMessage = {
@@ -70,8 +70,8 @@ export async function POST(req) {
       to,
       message,
       type: type || "text",
-      timestamp: timestamp || new Date().toLocaleString(),
-      createdAt: new Date(),
+      createdAt: new Date(),   // REQUIRED
+  updatedAt: new Date(),
     };
 
     return NextResponse.json(newMessage, { status: 201 });

@@ -95,6 +95,28 @@ useEffect(() => {
     fetchChat();
   }, [selectedUser, currentUser]);
 
+
+const formatDateTime = (dateString) => {
+  console.log("date : " ,dateString);
+  
+  if (!dateString) return "";
+
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "";
+
+  return `${date.toLocaleDateString("en-US", {
+    month: "2-digit",
+    day: "2-digit",
+    year: "2-digit",
+  })} ${date.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  })}`;
+};
+
+
+
   /* ---------------- SOCKET ---------------- */
   useEffect(() => {
   if (!currentUser?._id) return;
@@ -108,7 +130,7 @@ useEffect(() => {
 
   socketRef.current.on("online-users", setOnlineUsers);
 
-  
+
   socketRef.current.on("receive-message", (data) => {
 
      updateLastMessage({
@@ -150,11 +172,12 @@ const sendMessage = async () => {
   to: selectedUser._id,
   message,
   type: "text",
-  createdAt: new Date().toISOString(),
+  createdAt: new Date().toISOString()
 };
 
     try {
       await api.post("/api/auth/messages", payload);
+      console.log("Sent payload:", payload);
       socketRef.current.emit("private-message", payload);
 
       setChat((prev) => [...prev, payload]);
@@ -425,7 +448,8 @@ className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
             </div>
 
               {/* CHAT SCROLL AREA */}
-<div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 space-y-3 no-scrollbar">                {chat.map((msg, i) => {
+<div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 space-y-3 no-scrollbar">         
+         {chat.map((msg, i) => {
                   const isMe = msg.from === currentUser._id;
 
                     return (
@@ -437,7 +461,7 @@ className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
                       }`}>
                         {msg.message}
                         <div className="text-[10px] mt-1 text-right opacity-70">
-                        {new Date(msg.createdAt).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: '2-digit' })} {new Date(msg.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                         {formatDateTime(msg.createdAt)}
                         </div>
                       </div>
                       </div>
