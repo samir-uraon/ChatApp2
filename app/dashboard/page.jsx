@@ -5,7 +5,8 @@ import { io } from "socket.io-client";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import VideoCall from "@/components/VideoCall";
+ 
+
 
 export default function Dashboard() {
   const router = useRouter();
@@ -28,11 +29,14 @@ const [isUserLoading, setIsUserLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
-
+  
   const [lastMessageMap, setLastMessageMap] = useState({});
-
+  
   const socketRef = useRef(null);
   const chatEndRef = useRef(null);
+  
+
+
 
   const [unreadCounts, setUnreadCounts] = useState(() => {
   if (typeof window !== "undefined") {
@@ -349,13 +353,13 @@ if (isUserLoading) {
             
             <button
               onClick={() => setShowProfile(true)}
-className="w-10 h-10 md:w-11 md:h-11 hover:cursor-pointer rounded-full bg-blue-600 text-white font-semibold flex items-center justify-center"            >
+className="w-10 h-10 md:w-11 md:h-11 hover:cursor-pointer rounded-full bg-blue-500 text-white font-semibold flex items-center justify-center"            >
               {currentUser.name.charAt(0).toUpperCase()}
             </button>
 
             <button
               onClick={() => setShowAddModal(true)}
-className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cursor-pointer">
+className="bg-blue-500 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cursor-pointer">
               Add
             </button>
 
@@ -443,7 +447,7 @@ className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
                 <div className="flex items-center justify-center gap-5">
                     <button
               onClick={() => setShowProfile2(true)}
-              className="w-10 h-10 rounded-full bg-blue-600 text-white font-semibold flex items-center justify-center hover:cursor-pointer"
+              className="w-10 h-10 rounded-full bg-blue-500 text-white font-semibold flex items-center justify-center hover:cursor-pointer"
             >
               {selectedUser.name.charAt(0).toUpperCase()}
             </button>
@@ -464,15 +468,7 @@ className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
                 
                   </div>
                 </div>
-<div className="flex justify-center items-center gap-10">
-   {selectedUser && (
-  <button
-  onClick={() => router.push(`/call/${selectedUser._id}`)}
-  className="bg-blue-100 hover:bg-blue-200 text-white p-2 rounded-full shadow-lg text-xl transition"
->
-  📞
-</button>
-)}
+ 
                 <button
                 onClick={() => setSelectedUser(null)}
                 className="text-gray-500 hover:text-gray-700 text-xl hover:cursor-pointer"
@@ -480,7 +476,7 @@ className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
                 <span className="md:hidden text-2xl">←</span>
                 <span className="hidden md:inline">✕</span>
               </button>
-</div>
+
 
             </div>
 
@@ -493,7 +489,7 @@ className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
                       <div key={i} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
                       <div className={`max-w-[75%] sm:max-w-xs p-3 rounded-xl ${
                         isMe
-                          ? "bg-blue-500 text-white"
+                          ? "bg-blue-600 text-white"
                           : "bg-gray-200"
                       }`}>
                         {msg.message}
@@ -534,8 +530,8 @@ className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
       className={`shrink-0 px-5 py-2 text-sm rounded-full text-white transition
         ${
           isDisabled
-            ? "bg-blue-600 opacity-50 cursor-not-allowed"
-            : "bg-blue-600 active:scale-95"
+            ? "bg-blue-500 opacity-50 cursor-not-allowed"
+            : "bg-blue-500 active:scale-95"
         }`}
     >
       Send
@@ -584,7 +580,7 @@ className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
                   <div className="flex gap-3 w-full">
                     <button
                       onClick={() => setIsEditing(true)}
-                      className="flex-1 bg-blue-600 text-white py-2 rounded-xl hover:cursor-pointer"
+                      className="flex-1 bg-blue-600 px-3 text-white py-2 rounded-xl hover:cursor-pointer"
                     >
                       Edit Profile
                     </button>
@@ -717,7 +713,7 @@ className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
             }}
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
           />
-          <div className="relative bg-white w-75 max-w-[60%] rounded-2xl shadow-2xl p-8">
+          <div className="relative bg-white w-75 max-w-[60%] min-w-60 rounded-2xl shadow-2xl p-8 ">
             <button
               onClick={() => {
                 setShowProfile2(false);
@@ -731,8 +727,7 @@ className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
               <div className="w-24 h-24 rounded-full bg-linear-to-br  from-blue-500 to-indigo-600 text-white text-4xl font-bold flex items-center justify-center shadow-lg">
                 {selectedUser.name.charAt(0).toUpperCase()}
               </div>
-              {!isEditing ? (
-                <>
+        
                   <div>
                     <h3 className="text-2xl font-semibold text-gray-800">
                       {selectedUser.name}
@@ -740,33 +735,8 @@ className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
                     <p className="text-gray-500 mt-1">{selectedUser.email}</p>
                   </div>
                   
-                </>
-              ) : (
-                <>
-                  <div className="w-full space-y-4">
-                    <input
-                      type="text"
-                       
-                      className="w-full border rounded-xl px-4 py-2"
-                        onKeyDown={(e) => {
-        if (e.key === "Enter" && !isDisabled) {
-          e.preventDefault();
-        }
-      }}
-                    />
-                    <input
-                      type="email"
-                         onKeyDown={(e) => {
-        if (e.key === "Enter" && !isDisabled) {
-          e.preventDefault();
-        }
-      }}
-                      className="w-full border rounded-xl px-4 py-2"
-                    />
-                  </div>
-                
-                </>
-              )}
+  
+              
             </div>
           </div>
         </div>
