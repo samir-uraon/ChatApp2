@@ -713,7 +713,7 @@ className="bg-blue-500 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
             }}
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
           />
-          <div className="relative bg-white w-75 max-w-[60%] min-w-60 rounded-2xl shadow-2xl p-8 ">
+          <div className="relative bg-white  max-w-[60%] min-w-70 rounded-2xl shadow-2xl p-8 ">
             <button
               onClick={() => {
                 setShowProfile2(false);
