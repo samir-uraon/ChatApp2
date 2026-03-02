@@ -5,6 +5,7 @@ import { io } from "socket.io-client";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import VideoCall from "@/components/VideoCall";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -75,6 +76,7 @@ const [isUserLoading, setIsUserLoading] = useState(true);
 useEffect(() => {
   localStorage.setItem("unreadCounts", JSON.stringify(unreadCounts));
 }, [unreadCounts]);
+
 
 
 
@@ -438,27 +440,39 @@ className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
             <>
               {/* HEADER */}
               <div className="flex items-center justify-between px-6 py-3 border-b bg-gray-50">
-                <div className="flex items-center justify-center gap-3">
+                <div className="flex items-center justify-center gap-5">
                     <button
               onClick={() => setShowProfile2(true)}
               className="w-10 h-10 rounded-full bg-blue-600 text-white font-semibold flex items-center justify-center hover:cursor-pointer"
             >
               {selectedUser.name.charAt(0).toUpperCase()}
             </button>
-                  <h2 className="text-lg font-semibold text-gray-800">
+<div className="flex flex-col justify-center">
+                  <h2 className="text-base sm:text-lg font-semibold text-gray-800 truncate max-w-35 sm:max-w-none">
                     {selectedUser.name}
                   </h2>
-                  <p
-                    className={`text-sm ${
-                      onlineUsers.includes(selectedUser._id)
-                        ? "text-green-600"
-                        : "text-gray-400"
-                    }`}
-                  >
-                  
-                  </p>
+                
+                   <span
+        className={`text-xs sm:text-sm font-sans ${
+          onlineUsers.includes(selectedUser._id)
+            ? "text-green-600"
+            : "text-gray-400"
+        }`}
+      >
+        {onlineUsers.includes(selectedUser._id) ? "Online" : "Offline"}
+      </span>
+                
+                  </div>
                 </div>
-
+<div className="flex justify-center items-center gap-10">
+   {selectedUser && (
+  <button
+  onClick={() => router.push(`/call/${selectedUser._id}`)}
+  className="bg-blue-100 hover:bg-blue-200 text-white p-2 rounded-full shadow-lg text-xl transition"
+>
+  📞
+</button>
+)}
                 <button
                 onClick={() => setSelectedUser(null)}
                 className="text-gray-500 hover:text-gray-700 text-xl hover:cursor-pointer"
@@ -466,6 +480,8 @@ className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
                 <span className="md:hidden text-2xl">←</span>
                 <span className="hidden md:inline">✕</span>
               </button>
+</div>
+
             </div>
 
               {/* CHAT SCROLL AREA */}
@@ -552,6 +568,7 @@ className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
             >
               ✕
             </button>
+    
             <div className="flex flex-col items-center space-y-6 text-center">
               <div className="w-24 h-24 rounded-full bg-linear-to-br from-blue-500 to-indigo-600 text-white text-4xl font-bold flex items-center justify-center shadow-lg">
                 {currentUser.name.charAt(0).toUpperCase()}
