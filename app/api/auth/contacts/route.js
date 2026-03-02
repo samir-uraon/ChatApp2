@@ -22,11 +22,14 @@ export async function GET() {
     const client = await clientPromise;
     const db = client.db("chatapp");
 
-    const users = await db
-      .collection("users")
-      .find({ _id: { $ne: new ObjectId(decoded.userId) } })
-      .project({ password: 0 })
-      .toArray();
+  const currentUser = await db.collection("users").findOne({
+  _id: new ObjectId(decoded.userId)
+});
+
+const users = await db.collection("users")
+  .find({ _id: { $in: currentUser.contacts || [] } })
+  .project({ password: 0 })
+  .toArray();
 
     return NextResponse.json(users, { status: 200 });
   } catch (error) {

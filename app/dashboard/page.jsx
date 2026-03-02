@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useMemo } from "react";
 import { io } from "socket.io-client";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -12,12 +13,13 @@ export default function Dashboard() {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isUsersLoading, setIsUsersLoading] = useState(true);
-  
+  const [searchTerm, setSearchTerm] = useState("");
   const [chat, setChat] = useState([]);
   const [message, setMessage] = useState("");
   const isDisabled = message.trim() === "";
- 
- 
+ const [loading, setLoading] = useState(false);
+ const [showAddModal, setShowAddModal] = useState(false);
+  const [email, setEmail] = useState("");
 const [isUserLoading, setIsUserLoading] = useState(true);
  
   const [showProfile, setShowProfile] = useState(false);
@@ -66,7 +68,7 @@ const [isUserLoading, setIsUserLoading] = useState(true);
     };
 
     fetchUsers();
-  }, [currentUser]);
+  }, [currentUser, loading]);
 
 
   
@@ -177,7 +179,7 @@ const sendMessage = async () => {
 
     try {
       await api.post("/api/auth/messages", payload);
-      console.log("Sent payload:", payload);
+     
       socketRef.current.emit("private-message", payload);
 
       setChat((prev) => [...prev, payload]);
@@ -283,6 +285,23 @@ const updateLastMessage = (msg) => {
 };
 
 
+
+const handleAddContact = async () => {
+  try {
+    setLoading(true);
+    await api.post("/api/auth/add-contact", { email });
+    toast.success("Contact added successfully");
+    setShowAddModal(false);
+    setLoading(false);
+    setEmail("");
+  } catch (err) {
+    toast.error(err.response?.data?.message || "Failed to add contact");
+    setLoading(false);
+    setEmail("");
+  }
+};
+
+
   /* ---------------- SAVE PROFILE ---------------- */
   const saveProfile = async () => {
     try {
@@ -324,7 +343,7 @@ if (isUserLoading) {
         <div className={`bg-white rounded-2xl shadow-lg p-4 md:p-5 flex flex-col 
         h-[calc(100vh-24px)] md:h-[calc(100vh-48px)]
         ${selectedUser ? "hidden md:flex" : "flex"}`}>
-          <div className="flex justify-between items-center mb-6 shrink-0">
+          <div className="flex justify-between items-center mb-2 shrink-0">
             
             <button
               onClick={() => setShowProfile(true)}
@@ -333,13 +352,15 @@ className="w-10 h-10 md:w-11 md:h-11 hover:cursor-pointer rounded-full bg-blue-6
             </button>
 
             <button
-              onClick={() => router.push("/api/invite")}
-className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cursor-pointer"            >
-              Invite
+              onClick={() => setShowAddModal(true)}
+className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cursor-pointer">
+              Add
             </button>
 
           </div>
-
+<div className="py-4 mb-6 w-full">
+  <input type="text" name="search" id="search" placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+   className="w-full p-2 border focus:outline-2 rounded-lg outline-blue-500"/></div>
           <ul className="space-y-3 overflow-y-auto flex-1 min-h-0 no-scrollbar">
             {isUsersLoading ? (
               <div className="text-center text-gray-400 mt-10">
@@ -350,7 +371,7 @@ className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
                 No contacts found
               </div>
             ) : (
-            sortedUsers.map((user) => {
+            sortedUsers.filter((item)=>{return item.name.toLowerCase().includes(searchTerm.toLowerCase())}).map((user) => {
               const isOnline = onlineUsers.includes(user._id);
 
               return (
@@ -482,7 +503,7 @@ className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
       onChange={(e) => setMessage(e.target.value)}
       onKeyDown={(e) => {
         if (e.key === "Enter" && !isDisabled) {
-          sendMessage();
+          e.preventDefault();
         }
       }}
       className="flex-1 min-w-0 border rounded-full 
@@ -565,11 +586,21 @@ className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
                       type="text"
                       value={editName}
                       onChange={(e) => setEditName(e.target.value)}
+                        onKeyDown={(e) => {
+        if (e.key === "Enter" && !isDisabled) {
+          e.preventDefault();
+        }
+      }}
                       className="w-full border rounded-xl px-4 py-2"
                     />
                     <input
                       type="email"
                       value={editEmail}
+                        onKeyDown={(e) => {
+        if (e.key === "Enter" && !isDisabled) {
+          e.preventDefault();
+        }
+      }}
                       onChange={(e) => setEditEmail(e.target.value)}
                       className="w-full border rounded-xl px-4 py-2"
                     />
@@ -595,7 +626,70 @@ className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
         </div>
       )}
 
+{showAddModal && (
+  <div className="fixed inset-0 flex items-center justify-center z-50 px-4">
+    
+    {/* Overlay */}
+    <div
+      onClick={() => {
+        setShowAddModal(false);
+        setEmail("");
+      }}
+      className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+    />
 
+    {/* Modal */}
+    <div className="relative w-full max-w-sm sm:max-w-md 
+                    bg-white rounded-2xl shadow-xl 
+                    p-5 sm:p-6">
+      
+      {/* Close Button */}
+      <button
+        onClick={() => {
+          setShowAddModal(false);
+          setEmail("");
+        }}
+        className="absolute top-3 right-4 text-gray-400 hover:text-gray-700 text-lg"
+      >
+        ✕
+      </button>
+
+      <h2 className="font-semibold text-lg mb-4 text-center sm:text-left">
+        Add Contact
+      </h2>
+
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="Enter Gmail"
+          onKeyDown={(e) => {
+        if (e.key === "Enter" && !isDisabled) {
+          e.preventDefault();
+        }
+      }}
+        className="border w-full px-3 py-2 rounded-md mb-3 
+                   text-sm sm:text-base
+                   focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+
+      <button
+        onClick={handleAddContact}
+        disabled={!email || !email.endsWith("@gmail.com") || loading}
+        className={`w-full py-2 rounded-md text-white transition ${loading ? "opacity-50 hover:cursor-not-allowed" : "hover:cursor-pointer" }
+          ${
+            !email || !email.endsWith("@gmail.com") 
+              ? "bg-blue-600 opacity-50 "
+              : "bg-blue-600 active:scale-95"
+          }`}
+      >
+                  {loading ? "Adding..." : "Add"}
+
+      </button>
+
+    </div>
+  </div> 
+)}
 
 
       {showProfile2 && (
@@ -637,10 +731,19 @@ className="bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
                       type="text"
                        
                       className="w-full border rounded-xl px-4 py-2"
+                        onKeyDown={(e) => {
+        if (e.key === "Enter" && !isDisabled) {
+          e.preventDefault();
+        }
+      }}
                     />
                     <input
                       type="email"
-                       
+                         onKeyDown={(e) => {
+        if (e.key === "Enter" && !isDisabled) {
+          e.preventDefault();
+        }
+      }}
                       className="w-full border rounded-xl px-4 py-2"
                     />
                   </div>
