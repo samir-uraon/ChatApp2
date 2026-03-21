@@ -3,9 +3,10 @@ import formidable from "formidable";
 import fs from "fs/promises";
 import path from "path";
 
+// Disable Next.js automatic body parsing
 export const config = {
   api: {
-    bodyParser: false, // handle multipart manually
+    bodyParser: false,
   },
 };
 
@@ -13,22 +14,29 @@ export async function POST(req) {
   const uploadDir = path.join(process.cwd(), "public", "uploads");
   await fs.mkdir(uploadDir, { recursive: true });
 
-  // Use formidable's promise-based API
-  const form = formidable({ 
+  const form = formidable({
     uploadDir,
     keepExtensions: true,
-    multiples: false, // set true if you want multiple files
+    multiples: false,
   });
 
+  // Wrap parse in a promise
+  const parseForm = (req) =>
+    new Promise((resolve, reject) => {
+      form.parse(req, (err, fields, files) => {
+        if (err) reject(err);
+        else resolve({ fields, files });
+      });
+    });
+
   try {
-    const { files } = await form.parse(req); // promise-based parse
+    const { files } = await parseForm(req);
     const file = files.file;
 
     if (!file) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    // modern formidable uses .filepath
     const filePath = file.filepath || file.path;
     const fileUrl = `/uploads/${path.basename(filePath)}`;
 
