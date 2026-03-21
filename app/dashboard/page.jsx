@@ -5,7 +5,7 @@ import { io } from "socket.io-client";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
- 
+import { generateToken } from "@/firebase";
 
 
 export default function Dashboard() {
@@ -23,7 +23,7 @@ export default function Dashboard() {
  const [showAddModal, setShowAddModal] = useState(false);
   const [email, setEmail] = useState("");
 const [isUserLoading, setIsUserLoading] = useState(true);
- 
+ const [isChatLoading, setIsChatLoading] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showProfile2, setShowProfile2] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -35,6 +35,7 @@ const [isUserLoading, setIsUserLoading] = useState(true);
   const socketRef = useRef(null);
   const chatEndRef = useRef(null);
   
+
 
 
 
@@ -105,8 +106,7 @@ useEffect(() => {
 
 
 const formatDateTime = (dateString) => {
-  console.log("date : " ,dateString);
-  
+
   if (!dateString) return "";
 
   const date = new Date(dateString);
@@ -136,32 +136,77 @@ const formatDateTime = (dateString) => {
 
   socketRef.current.emit("register", currentUser._id);
 
-  socketRef.current.on("online-users", setOnlineUsers);
+   socketRef.current.on("online-users", (usersArray) => {
+    setOnlineUsers(usersArray);
+  });
 
+socketRef.current.emit("user-online", {
+    userId: currentUser._id,
+    name: currentUser.name,
+  });
+
+socketRef.current.on("unread-messages", (data) => {
+  updateLastMessage({
+    senderId: data.from,
+    receiverId: currentUser._id,
+    createdAt: data.createdAt,
+  });
+
+  if (selectedUser && data.from === selectedUser._id) {
+    // Add message to chat
+    setChat(prev => [...prev, data]);
+
+    // Reset unread count immediately
+    setUnreadCounts(prev => ({
+      ...prev,
+      [data.from]: 0,
+    }));
+
+    // Tell backend these messages are seen
+    socketRef.current.emit("mark-seen", { 
+      userId: currentUser._id, 
+      contactId: data.from 
+    });
+  } else {
+    // Increment unread count for other users
+    setUnreadCounts(prev => ({
+      ...prev,
+      [data.from]: (prev[data.from] || 0) + 1,
+    }));
+  }
+});
 
   socketRef.current.on("receive-message", (data) => {
-
-     updateLastMessage({
-      senderId: data.from,
-      receiverId: currentUser._id,
-      createdAt: data.createdAt,
-    });
-
-    setUnreadCounts((prev) => {
-      if (selectedUser && data.from === selectedUser._id) {
-        return prev;
-      }
-
-      return {
-        ...prev,
-        [data.from]: (prev[data.from] || 0) + 1,
-      };
-    });
-
-    if (selectedUser && data.from === selectedUser._id) {
-      setChat((prev) => [...prev, data]);
-    }
+  // Update last message for sorting
+  updateLastMessage({
+    senderId: data.from,
+    receiverId: currentUser._id,
+    createdAt: data.createdAt,
   });
+
+  if (selectedUser && data.from === selectedUser._id) {
+    // Add message to chat
+    setChat((prev) => [...prev, data]);
+
+    // Reset unread count
+    setUnreadCounts((prev) => ({
+      ...prev,
+      [data.from]: 0,
+    }));
+
+    // Tell backend these messages are seen
+    socketRef.current.emit("mark-seen", {
+      userId: currentUser._id,
+      contactId: data.from,
+    });
+  } else {
+    // Increment unread count for other contacts
+    setUnreadCounts((prev) => ({
+      ...prev,
+      [data.from]: (prev[data.from] || 0) + 1,
+    }));
+  }
+});
 
   return () => socketRef.current?.disconnect();
 }, [currentUser, selectedUser]);
@@ -265,6 +310,43 @@ const sortedUsers = useMemo(() => {
 }, []);
 
 
+const CreateToken=async ()=>{
+const token = await generateToken();
+ 
+if(!token) return ;
+ 
+
+try {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_SOCKET_URL}/api/save-token`,
+    {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userId: currentUser?._id,
+        token,
+        fromname:currentUser.name
+      }),
+    }
+  );
+ 
+} catch (err) {
+  console.log("ERROR:", err);
+}
+
+}
+  
+useEffect(()=>{
+  if(currentUser){
+  CreateToken()
+}
+
+},[currentUser])
+
+
 const updateLastMessage = (msg) => {
   const otherUserId =
     msg.senderId === currentUser._id
@@ -318,7 +400,7 @@ const handleAddContact = async () => {
     , {
   headers: { "Content-Type": "application/json" }
 });
-console.log(res.data);
+
 
       setCurrentUser(res.data);
       setIsEditing(false);
@@ -402,15 +484,16 @@ className="bg-blue-500 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
                       <span>{user.name}</span>
 
                       {/* Green Dot */}
-                      {unreadCounts[user._id] > 0 && (
-                        <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                      )}
-                    </div>
+                       {unreadCounts[user._id] > 0 && selectedUser?._id !== user._id && (
+      <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+    )}
+  </div>
 
-                    {unreadCounts[user._id] > 0 && (
-                      <span className="bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">
-                        {unreadCounts[user._id]}
-                      </span>
+  {/* Unread Count Badge */}
+  {unreadCounts[user._id] > 0 && selectedUser?._id !== user._id && (
+    <span className="bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">
+      {unreadCounts[user._id]}
+    </span>
                     )}
                   </div>
 
@@ -482,7 +565,16 @@ className="bg-blue-500 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
 
               {/* CHAT SCROLL AREA */}
 <div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 space-y-3 no-scrollbar">         
-         {chat.map((msg, i) => {
+           {isChatLoading ? (
+    <div className="text-center text-gray-400 mt-10">
+      Loading Messages...
+    </div>
+  ) : chat.length === 0 ? (
+    <div className="text-center text-gray-400 mt-10">
+      No Messages found
+    </div>
+  )  : (
+            chat.map((msg, i) => {
                   const isMe = msg.from === currentUser._id;
 
                     return (
@@ -499,15 +591,15 @@ className="bg-blue-500 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
                       </div>
                       </div>
                     );
-                })}
+                }))}
                 <div ref={chatEndRef} />
               </div>
 
              
 
               {/* INPUT */}
-          <div className="p-2 border-t bg-white">
-  <div className="flex items-center gap-2 w-full">
+          <div className="py-4 px-5 border-t bg-white">
+  <div className="flex items-center gap-4 w-full">
 
     <input
       type="text"
@@ -519,19 +611,19 @@ className="bg-blue-500 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
         }
       }}
       className="flex-1 min-w-0 border rounded-full 
-                 px-3 py-2 text-sm
-                 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                 px-4 py-2 text-sm
+                 focus:outline-none focus:ring-1 focus:ring-blue-500"
       placeholder="Type message..."
     />
 
     <button
       onClick={sendMessage}
       disabled={isDisabled}
-      className={`shrink-0 px-5 py-2 text-sm rounded-full text-white transition
+      className={`shrink-0 px-8 py-2 text-sm rounded-full text-white transition 
         ${
           isDisabled
             ? "bg-blue-500 opacity-50 cursor-not-allowed"
-            : "bg-blue-500 active:scale-95"
+            : "bg-blue-500 active:scale-95 hover:cursor-pointer"
         }`}
     >
       Send
@@ -608,6 +700,8 @@ className="bg-blue-500 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
                     />
                     <input
                       type="email"
+                      readOnly
+                      
                       value={editEmail}
                         onKeyDown={(e) => {
         if (e.key === "Enter" && !isDisabled) {
@@ -615,7 +709,7 @@ className="bg-blue-500 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
         }
       }}
                       onChange={(e) => setEditEmail(e.target.value)}
-                      className="w-full border rounded-xl px-4 py-2"
+                      className="w-full border rounded-xl px-4 py-2 bg-gray-200"
                     />
                   </div>
                   <div className="flex gap-3 w-full">
@@ -683,7 +777,7 @@ className="bg-blue-500 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
       }}
         className="border w-full px-3 py-2 rounded-md mb-3 
                    text-sm sm:text-base
-                   focus:outline-none focus:ring-2 focus:ring-blue-500"
+                   focus:outline-none focus:ring-1 focus:ring-blue-500"
       />
 
       <button

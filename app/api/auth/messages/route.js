@@ -17,7 +17,7 @@ export async function GET(req) {
     }
 
     const client = await clientPromise;
-    const db = client.db();
+    const db = client.db("chatapp");
 
     // Fetch all messages between user and contact
     const messages = await db
@@ -53,7 +53,7 @@ export async function POST(req) {
     }
 
     const client = await clientPromise;
-    const db = client.db();
+    const db = client.db("chatapp");
 
     const result = await db.collection("messages").insertOne({
       from: new ObjectId(from),

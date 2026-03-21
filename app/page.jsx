@@ -11,6 +11,8 @@ export default function Home() {
   const [isLogin, setIsLogin] = useState(false);
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
   const [bgLoaded, setBgLoaded] = useState(false); // Track background load
+  const [loading, setLoading] = useState(false);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -20,18 +22,21 @@ export default function Home() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      setLoading(true);
       const url = isLogin ? "/api/auth/login" : "/api/auth/signup";
       const { data } = await axios.post(url, formData);
       if (!isLogin) {
         toast.success("Signup successful! Please login.", { position: "top-right" });
         setIsLogin(true);
         setFormData({ ...formData, name: "", password: "" });
+setLoading(false)
       } else {
-        
+        setLoading(false)
         toast.success(`Welcome back, ${data.username}!`, { position: "top-right" });
         router.push("/dashboard");
       }
     } catch (err) {
+      setLoading(false)
       toast.error(err.message, { position: "bottom-right" });
     }
   };
@@ -115,9 +120,13 @@ export default function Home() {
                   Forgot Password?
                 </p>
               )}
-              <Button type="submit" className="w-full mt-4">
-                {isLogin ? "Login" : "Sign Up"}
-              </Button>
+            <Button
+  type="submit"
+  className="w-full mt-4"
+  disabled={loading} // ✅ disable when sending
+>
+  {loading ? (isLogin ? "Logging in..." : "Signing up...") : (isLogin ? "Login" : "Sign Up")}
+</Button>
             </form>
             <p className="text-sm text-white">
               {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
