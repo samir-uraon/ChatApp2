@@ -582,15 +582,15 @@ className="bg-blue-500 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
 
                     return (
                       <div key={i} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                      <div className={`max-w-[80%] sm:max-w-xs p-3 px-6 rounded-xl ${
+                      <div className={`max-w-[75%] sm:max-w-xs p-3 rounded-xl ${
                         isMe
                           ? "bg-blue-600 text-white"
                           : "bg-gray-200"
                       }`}>
                         {msg.message}
                         <div className="text-[10px] mt-1 text-right opacity-70">
-                         {formatDateTime(msg.createdAt)}
-                        </div>
+<span className="mr-2">{formatDateTime(msg.createdAt).slice(0, 8)}</span>
+{formatDateTime(msg.createdAt).slice(8)}                        </div>
                       </div>
                       </div>
                     );
