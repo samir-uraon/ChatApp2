@@ -92,12 +92,15 @@ useEffect(() => {
 
     const fetchChat = async () => {
       try {
+        setIsChatLoading(true);
         const res = await api.get(
           `/api/auth/messages?userId=${currentUser._id}&contactId=${selectedUser._id}`
         );
         setChat(res.data);
+        setIsChatLoading(false)
       } catch (err) {
         console.error(err);
+        setIsChatLoading(false)
       }
     };
 
