@@ -582,7 +582,7 @@ className="bg-blue-500 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
 
                     return (
                       <div key={i} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                      <div className={`max-w-[75%] sm:max-w-xs p-3 rounded-xl ${
+                      <div className={`max-w-[80%] sm:max-w-xs p-3 px-6 rounded-xl ${
                         isMe
                           ? "bg-blue-600 text-white"
                           : "bg-gray-200"
