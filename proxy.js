@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import  { NextRequest } from "next/server";
 import jwt from "jsonwebtoken";
 
 const SECRET_KEY = process.env.JWT_SECRET;
@@ -8,7 +7,7 @@ export function proxy(req) {
   const token = req.cookies.get("token")?.value;
 
   if (!token) {
-    return NextResponse.redirect(new URL("/", req.url));
+    return NextResponse.redirect(new URL("/resister", req.url));
   }
 
   try {
@@ -22,5 +21,5 @@ export function proxy(req) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/profile/:path*"],
+  matcher: ["/", "/profile/:path*"],
 };
