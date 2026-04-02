@@ -356,6 +356,12 @@ const handleAccept = async (id) => {
   const fetchCurrentUser = async () => {
     try {
       const res = await api.get("/api/me");
+      console.log(res.data);
+      
+      if (res.data==null) {
+        logout(); 
+        return;
+      }
       setCurrentUser(res.data);
       setEditName(res.data.name);
       setEditEmail(res.data.email);
