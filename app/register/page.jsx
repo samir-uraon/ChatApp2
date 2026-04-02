@@ -36,9 +36,19 @@ setLoading(false)
         router.push("/");
       }
     } catch (err) {
-      setLoading(false)
-      toast.error(err.message, { position: "bottom-right" });
-    }
+  setLoading(false);
+
+  const message =
+    err.response?.data?.message || "Something went wrong";
+
+  if (message === "Email already exists") {
+    toast.error("Email already registered. Please login.", {
+      position: "bottom-right",
+    });
+  } else {
+    toast.error(message, { position: "bottom-right" });
+  }
+}
   };
 
   // Preload background image

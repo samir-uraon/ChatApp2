@@ -341,7 +341,7 @@ const handleAccept = async (id) => {
     localStorage.removeItem("unreadCounts");
     localStorage.removeItem("lastMessageMap");
   
-    router.push("/");
+    router.push("/register");
   };
 
 
@@ -802,7 +802,7 @@ className="bg-blue-500 text-white px-3 md:px-4 py-2 rounded-lg text-sm hover:cur
                       Edit Profile
                     </button>
                     <button
-    onClick={() => router.push("/signup")}
+    onClick={() => router.push("/register")}
     className="flex-1 bg-purple-500 text-white px-1 py-2 sm:py-2 md:py-1 text-sm rounded-xl hover:cursor-pointer hover:bg-purple-400"
   >
     Signup
