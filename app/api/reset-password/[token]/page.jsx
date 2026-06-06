@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import axios from "axios";
+
 import toast, { Toaster } from "react-hot-toast";
 
 export default function ResetPassword() {
@@ -27,7 +27,8 @@ export default function ResetPassword() {
     setLoading(true);
 
     try {
-      const { data } = await axios.post("/api/auth/reset", {
+      const { data } = await fetch("/api/auth/reset", {
+        method:"POST",
         token,
         newPassword: password,
       });
