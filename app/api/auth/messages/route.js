@@ -1,11 +1,12 @@
-
 import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 
+/* ---------------- GET MESSAGES ---------------- */
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
+
     const userId = searchParams.get("userId");
     const contactId = searchParams.get("contactId");
 
@@ -16,24 +17,51 @@ export async function GET(req) {
       );
     }
 
-    const client = await clientPromise;
-    const db = client.db("chatapp");
+    if (
+      !ObjectId.isValid(userId) ||
+      !ObjectId.isValid(contactId)
+    ) {
+      return NextResponse.json(
+        { error: "Invalid user id" },
+        { status: 400 }
+      );
+    }
 
-    // Fetch all messages between user and contact
+    const client = await clientPromise;
+    const db = client.db(process.env.MONGODB_DB);
+
     const messages = await db
       .collection("messages")
       .find({
         $or: [
-          { from: new ObjectId(userId), to: new ObjectId(contactId) },
-          { from: new ObjectId(contactId), to: new ObjectId(userId) },
+          {
+            from: new ObjectId(userId),
+            to: new ObjectId(contactId),
+          },
+          {
+            from: new ObjectId(contactId),
+            to: new ObjectId(userId),
+          },
         ],
       })
-      .sort({ createdAt: 1 }) // oldest first
+      .sort({ createdAt: 1 })
       .toArray();
 
-    return NextResponse.json(messages);
-  } catch (err) {
-    console.error(err);
+    const formattedMessages = messages.map((msg) => ({
+      _id: msg._id.toString(),
+      from: msg.from.toString(),
+      to: msg.to.toString(),
+      message: msg.message,
+      type: msg.type || "text",
+      seen: msg.seen || false,
+      createdAt: msg.createdAt,
+      updatedAt: msg.updatedAt,
+    }));
+
+    return NextResponse.json(formattedMessages);
+  } catch (error) {
+    console.error(error);
+
     return NextResponse.json(
       { error: "Failed to fetch messages" },
       { status: 500 }
@@ -41,42 +69,63 @@ export async function GET(req) {
   }
 }
 
+/* ---------------- SAVE MESSAGE ---------------- */
 export async function POST(req) {
   try {
-    const { from, to, message, type} = await req.json();
+    const { from, to, message, type } = await req.json();
 
-    if (!from || !to || !message) {
+    if (!from || !to || !message?.trim()) {
       return NextResponse.json(
-        { error: "from, to, and message are required" },
+        { error: "from, to and message are required" },
+        { status: 400 }
+      );
+    }
+
+    if (
+      !ObjectId.isValid(from) ||
+      !ObjectId.isValid(to)
+    ) {
+      return NextResponse.json(
+        { error: "Invalid user id" },
         { status: 400 }
       );
     }
 
     const client = await clientPromise;
-    const db = client.db("chatapp");
+    const db = client.db(process.env.MONGODB_DB);
 
-    const result = await db.collection("messages").insertOne({
+    const now = new Date();
+
+    const messageDoc = {
       from: new ObjectId(from),
       to: new ObjectId(to),
-      message: message,
+      message: message.trim(),
       type: type || "text",
-    createdAt: new Date(),   // REQUIRED
-  updatedAt: new Date(),
-    });
-
-    const newMessage = {
-      _id: result.insertedId,
-      from,
-      to,
-      message,
-      type: type || "text",
-      createdAt: new Date(),   // REQUIRED
-  updatedAt: new Date(),
+      seen: false,
+      createdAt: now,
+      updatedAt: now,
     };
 
-    return NextResponse.json(newMessage, { status: 201 });
-  } catch (err) {
-    console.error(err);
+    const result = await db
+      .collection("messages")
+      .insertOne(messageDoc);
+
+    return NextResponse.json(
+      {
+        _id: result.insertedId.toString(),
+        from,
+        to,
+        message: message.trim(),
+        type: type || "text",
+        seen: false,
+        createdAt: now,
+        updatedAt: now,
+      },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error(error);
+
     return NextResponse.json(
       { error: "Failed to save message" },
       { status: 500 }

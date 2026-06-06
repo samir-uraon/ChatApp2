@@ -15,7 +15,7 @@ export async function POST(req) {
     }
 
     const client = await clientPromise;
-    const db = client.db("chatapp");
+    const db = client.db(process.env.MONGODB_DB);
 
 
     const result = await db.collection("friendRequests").updateMany(

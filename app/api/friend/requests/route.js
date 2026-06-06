@@ -1,4 +1,4 @@
-// /app/api/friend/requests/route.js
+
 import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
@@ -8,13 +8,13 @@ export async function GET(req) {
     // 1️⃣ Get the userId from query params
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get("userId");
-    console.log(userId);
+    console.log("userId:", userId);
     
     if (!userId) return NextResponse.json({ message: "userId is required" }, { status: 400 });
 
     // 2️⃣ Connect to MongoDB
     const client = await clientPromise;
-    const db = client.db("chatapp");
+    const db = client.db(process.env.MONGODB_DB);
 
     // 3️⃣ Fetch pending friend requests
     const requests = await db

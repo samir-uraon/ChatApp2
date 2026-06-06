@@ -50,7 +50,7 @@ export async function POST(req) {
     await db.collection("users").updateOne(
       { _id: user._id },
       {
-        $set: { password: hashedPassword },
+        $set: { password: hashedPassword, passwordcreatedAt: new Date() },
         $unset: {
           resetPasswordToken: "",
           resetPasswordExpire: "",
@@ -63,11 +63,7 @@ export async function POST(req) {
       { status: 200 }
     );
     
-    return  response.cookies.set("token", "", {
-    httpOnly: true,
-    expires: new Date(0),
-    path: "/",
-  });
+  response.cookies.delete("auth-token");
   
 
   } catch (error) {

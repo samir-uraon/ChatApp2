@@ -1,12 +1,9 @@
-// /api/friend/manage/route.js
+ 
 import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 
-/**
- * POST: Send a friend request using recipient's email
- * body: { from, to }  // to = email
- */
+
 export async function POST(req) {
   try {
     const { from, to ,senderName} = await req.json();
@@ -16,7 +13,7 @@ export async function POST(req) {
     }
 
     const client = await clientPromise;
-    const db = client.db("chatapp");
+    const db = client.db(process.env.MONGODB_DB);
 
     // Resolve recipient email to _id
     const recipient = await db.collection("users").findOne({ email: to });
@@ -83,7 +80,7 @@ export async function PUT(req) {
     }
 
     const client = await clientPromise;
-    const db = client.db("chatapp");
+    const db = client.db(process.env.MONGODB_DB);
 
     // Find the friend request
     const request = await db.collection("friendRequests").findOne({
